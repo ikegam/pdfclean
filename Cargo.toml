@@ -1,0 +1,13 @@
+[package]
+name = "markdown-filter"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "cleaner"
+path = "src/bin/cleaner.rs"
+
+[dependencies]
+markdown = "1.0"
+regex = "1.10"
+anyhow = "1.0"
