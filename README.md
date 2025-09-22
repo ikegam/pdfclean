@@ -119,9 +119,10 @@ cargo run -- tests/fixtures/basic_text.md /tmp/output.md
 ```
 
 ### コードブロックの保護
-```markdown
+````markdown
 # 処理前・後（内部の空白は保護）
 ```
 コード　　　例　　　です
 空白　　　保持
 ```
+````
