@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::env;
 use std::fs;
 use anyhow::Result;
-use markdown_filter::{MarkdownProcessor, WhitespaceHandler, ImageHandler};
+use markdown_filter::{MarkdownProcessor, WhitespaceHandler, ImageHandler, TableHandler};
 
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
@@ -22,6 +22,10 @@ fn main() -> Result<()> {
     // Add ImageHandler first to protect images from whitespace processing
     let image_handler = ImageHandler::new();
     processor.add_handler(Arc::new(image_handler));
+
+    // Add TableHandler to protect tables from whitespace processing
+    let table_handler = TableHandler::new();
+    processor.add_handler(Arc::new(table_handler));
 
     let whitespace_handler = WhitespaceHandler::new();
     processor.add_handler(Arc::new(whitespace_handler));

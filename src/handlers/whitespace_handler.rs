@@ -19,8 +19,8 @@ impl WhitespaceHandler {
 
 impl Handler for WhitespaceHandler {
     fn can_handle(&self, unit: &MarkdownUnit) -> bool {
-        // Skip image units - they should be handled by ImageHandler
-        !matches!(unit, MarkdownUnit::Image { .. })
+        // Skip image and table units - they should be handled by their respective handlers
+        !matches!(unit, MarkdownUnit::Image { .. } | MarkdownUnit::Table { .. })
     }
 
     fn handle(&self, mut unit: MarkdownUnit, _context: &HandlerContext) -> Result<Option<MarkdownUnit>> {
@@ -47,6 +47,10 @@ impl Handler for WhitespaceHandler {
             }
             MarkdownUnit::Image { .. } => {
                 // Images should not be processed by this handler
+                // This case should not occur due to can_handle() check
+            }
+            MarkdownUnit::Table { .. } => {
+                // Tables should not be processed by this handler
                 // This case should not occur due to can_handle() check
             }
         }

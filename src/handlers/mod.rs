@@ -4,6 +4,7 @@ pub mod heading_handler;
 pub mod paragraph_handler;
 pub mod whitespace_handler;
 pub mod image_handler;
+pub mod table_handler;
 
 pub use traits::{Handler, HandlerContext, MarkdownUnit};
 pub use regex_handler::RegexHandler;
@@ -11,3 +12,4 @@ pub use heading_handler::HeadingHandler;
 pub use paragraph_handler::ParagraphHandler;
 pub use whitespace_handler::WhitespaceHandler;
 pub use image_handler::ImageHandler;
+pub use table_handler::TableHandler;

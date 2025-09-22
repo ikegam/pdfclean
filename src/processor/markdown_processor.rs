@@ -64,7 +64,13 @@ impl MarkdownProcessor {
             }
             Node::Paragraph(_) => {
                 let content = self.extract_text_content(node);
-                Some(MarkdownUnit::Paragraph { content })
+                // Check if this paragraph contains table-like content
+                // But exclude image references which also contain |
+                if content.contains('|') && content.matches('|').count() >= 2 && !content.starts_with("![") {
+                    Some(MarkdownUnit::Table { content })
+                } else {
+                    Some(MarkdownUnit::Paragraph { content })
+                }
             }
             Node::Code(code) => {
                 Some(MarkdownUnit::CodeBlock {
@@ -85,6 +91,10 @@ impl MarkdownProcessor {
                     alt: image.alt.clone(),
                     url: image.url.clone(),
                 })
+            }
+            Node::Table(_) => {
+                let content = self.extract_table_content(node);
+                Some(MarkdownUnit::Table { content })
             }
             _ => {
                 let content = self.extract_text_content(node);
@@ -132,6 +142,27 @@ impl MarkdownProcessor {
             }
             Node::Image(image) => {
                 format!("![{}]({})", image.alt, image.url)
+            }
+            Node::Table(table) => {
+                let mut result = Vec::new();
+
+                for row in &table.children {
+                    if let Node::TableRow(table_row) = row {
+                        let cells: Vec<String> = table_row.children.iter()
+                            .map(|cell| {
+                                if let Node::TableCell(_table_cell) = cell {
+                                    self.extract_text_content(cell)
+                                } else {
+                                    String::new()
+                                }
+                            })
+                            .collect();
+
+                        result.push(format!("| {} |", cells.join(" | ")));
+                    }
+                }
+
+                result.join("\n")
             }
             _ => String::new(),
         }
@@ -193,7 +224,14 @@ impl MarkdownProcessor {
             MarkdownUnit::Image { alt, url } => {
                 format!("![{}]({})", alt, url)
             }
+            MarkdownUnit::Table { content } => content,
             MarkdownUnit::Raw { content } => content,
         }
+    }
+
+    fn extract_table_content(&self, node: &Node) -> String {
+        // For now, let's preserve the table content as-is by using extract_text_content
+        // which should maintain the original table structure
+        self.extract_text_content(node)
     }
 }

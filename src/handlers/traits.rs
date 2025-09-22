@@ -8,6 +8,7 @@ pub enum MarkdownUnit {
     List { items: Vec<String> },
     BlockQuote { content: String },
     Image { alt: String, url: String },
+    Table { content: String },
     Raw { content: String },
 }
 
@@ -20,6 +21,7 @@ impl MarkdownUnit {
             MarkdownUnit::List { .. } => "",
             MarkdownUnit::BlockQuote { content } => content,
             MarkdownUnit::Image { alt, .. } => alt,
+            MarkdownUnit::Table { content } => content,
             MarkdownUnit::Raw { content } => content,
         }
     }
@@ -31,6 +33,7 @@ impl MarkdownUnit {
             MarkdownUnit::CodeBlock { content, .. } => *content = new_content,
             MarkdownUnit::BlockQuote { content } => *content = new_content,
             MarkdownUnit::Image { alt, .. } => *alt = new_content,
+            MarkdownUnit::Table { content } => *content = new_content,
             MarkdownUnit::Raw { content } => *content = new_content,
             MarkdownUnit::List { .. } => {},
         }
@@ -44,6 +47,7 @@ impl MarkdownUnit {
             MarkdownUnit::List { .. } => "list",
             MarkdownUnit::BlockQuote { .. } => "blockquote",
             MarkdownUnit::Image { .. } => "image",
+            MarkdownUnit::Table { .. } => "table",
             MarkdownUnit::Raw { .. } => "raw",
         }
     }
