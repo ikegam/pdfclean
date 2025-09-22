@@ -9,7 +9,7 @@ repository = "https://github.com/ikegam/pdfclean"
 
 [[bin]]
 name = "pdfclean"
-path = "src/bin/cleaner.rs"
+path = "src/main.rs"
 
 [dependencies]
 markdown = "1.0"

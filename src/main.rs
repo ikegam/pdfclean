@@ -39,7 +39,7 @@ fn main() -> Result<()> {
     cleaner.add_processor(Arc::new(TableProcessor::new()));
 
     // Process the content
-    let cleaned_content = cleaner.process(&input_content)?;
+    let cleaned_content = cleaner.clean(&input_content)?;
 
     // Output the result
     match args.len() {
