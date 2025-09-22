@@ -13,10 +13,16 @@ AI-specialized markdown cleaner for PDF-extracted content. PDFから抽出され
 ## 使用例
 
 ```bash
-# ファイルをクリーンアップ
+# ファイルをクリーンアップ（ファイル間処理）
 pdfclean input.md output.md
 
+# ファイルから標準出力
+pdfclean input.md
+
 # 標準入出力を使用
+pdfclean < input.md > output.md
+
+# パイプ処理
 cat messy.md | pdfclean > clean.md
 ```
 
