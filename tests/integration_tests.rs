@@ -1,22 +1,16 @@
 use std::sync::Arc;
-use markdown_filter::{MarkdownProcessor, WhitespaceHandler, ImageHandler, TableHandler};
+use pdfclean::{MarkdownCleaner, WhitespaceProcessor, ImageProcessor, TableProcessor};
 
-/// Helper function to create a processor with all handlers
-fn create_processor() -> MarkdownProcessor {
-    let mut processor = MarkdownProcessor::new();
+/// Helper function to create a cleaner with all processors
+fn create_cleaner() -> MarkdownCleaner {
+    let mut cleaner = MarkdownCleaner::new();
 
-    // Add ImageHandler first to protect images from whitespace processing
-    let image_handler = ImageHandler::new();
-    processor.add_handler(Arc::new(image_handler));
+    // Add processors in priority order
+    cleaner.add_processor(Arc::new(ImageProcessor::new()));
+    cleaner.add_processor(Arc::new(TableProcessor::new()));
+    cleaner.add_processor(Arc::new(WhitespaceProcessor::new()));
 
-    // Add TableHandler to protect tables from whitespace processing
-    let table_handler = TableHandler::new();
-    processor.add_handler(Arc::new(table_handler));
-
-    let whitespace_handler = WhitespaceHandler::new();
-    processor.add_handler(Arc::new(whitespace_handler));
-
-    processor
+    cleaner
 }
 
 /// Count the number of image references in markdown content
@@ -31,11 +25,11 @@ fn count_table_rows(content: &str) -> usize {
 
 #[test]
 fn test_basic_whitespace_cleaning() {
-    let processor = create_processor();
+    let cleaner = create_cleaner();
     let input = include_str!("fixtures/basic_text.md");
     let expected = include_str!("expected/basic_text_cleaned.md");
 
-    let result = processor.process(input).expect("Processing should succeed");
+    let result = cleaner.clean(input).expect("Processing should succeed");
 
     // Compare the results
     assert_eq!(result.trim(), expected.trim(), "Basic whitespace cleaning failed");
@@ -43,11 +37,11 @@ fn test_basic_whitespace_cleaning() {
 
 #[test]
 fn test_image_preservation() {
-    let processor = create_processor();
+    let cleaner = create_cleaner();
     let input = include_str!("fixtures/with_images.md");
     let expected = include_str!("expected/with_images_cleaned.md");
 
-    let result = processor.process(input).expect("Processing should succeed");
+    let result = cleaner.clean(input).expect("Processing should succeed");
 
     // Count images to ensure they are preserved
     let input_image_count = count_images(input);
@@ -71,11 +65,11 @@ fn test_image_preservation() {
 
 #[test]
 fn test_table_preservation() {
-    let processor = create_processor();
+    let cleaner = create_cleaner();
     let input = include_str!("fixtures/with_tables.md");
     let expected = include_str!("expected/with_tables_cleaned.md");
 
-    let result = processor.process(input).expect("Processing should succeed");
+    let result = cleaner.clean(input).expect("Processing should succeed");
 
     // Count table rows to ensure they are preserved
     let input_table_rows = count_table_rows(input);
@@ -97,11 +91,11 @@ fn test_table_preservation() {
 
 #[test]
 fn test_complex_document_processing() {
-    let processor = create_processor();
+    let cleaner = create_cleaner();
     let input = include_str!("fixtures/complex_document.md");
     let expected = include_str!("expected/complex_document_cleaned.md");
 
-    let result = processor.process(input).expect("Processing should succeed");
+    let result = cleaner.clean(input).expect("Processing should succeed");
 
     // Test image preservation in complex document
     let input_image_count = count_images(input);
@@ -131,32 +125,32 @@ fn test_complex_document_processing() {
 
 #[test]
 fn test_whitespace_only_cleaning() {
-    let processor = create_processor();
+    let cleaner = create_cleaner();
 
     // Test with content that has only whitespace changes, no images or tables
     let input = "# テスト　　　見出し\n\n段落　　　テスト　　　です。\n\n最終　　　段落。";
     let expected = "# テスト見出し\n\n段落テストです。\n\n最終段落。";
 
-    let result = processor.process(input).expect("Processing should succeed");
+    let result = cleaner.clean(input).expect("Processing should succeed");
 
     assert_eq!(result.trim(), expected.trim(), "Whitespace-only cleaning failed");
 }
 
 #[test]
 fn test_edge_cases() {
-    let processor = create_processor();
+    let cleaner = create_cleaner();
 
     // Test empty content
-    let result = processor.process("").expect("Processing empty content should succeed");
+    let result = cleaner.clean("").expect("Processing empty content should succeed");
     assert_eq!(result.trim(), "", "Empty content should remain empty");
 
     // Test only images
     let image_only = "![test](test.jpg)\n\n![test2](test2.png)";
-    let result = processor.process(image_only).expect("Processing image-only content should succeed");
+    let result = cleaner.clean(image_only).expect("Processing image-only content should succeed");
     assert_eq!(count_images(&result), 2, "Image-only content should preserve both images");
 
     // Test only tables
     let table_only = "| A | B |\n|---|---|\n| 1 | 2 |";
-    let result = processor.process(table_only).expect("Processing table-only content should succeed");
+    let result = cleaner.clean(table_only).expect("Processing table-only content should succeed");
     assert!(result.contains("| A | B |"), "Table-only content should preserve table structure");
 }

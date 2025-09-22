@@ -1,5 +1,5 @@
-pub mod handlers;
-pub mod processor;
+pub mod processors;
+pub mod cleaner;
 
-pub use handlers::{Handler, HandlerContext, MarkdownUnit, RegexHandler, HeadingHandler, ParagraphHandler, WhitespaceHandler, ImageHandler, TableHandler};
-pub use processor::MarkdownProcessor;
+pub use processors::{NodeProcessor, ProcessContext, WhitespaceProcessor, ImageProcessor, TableProcessor};
+pub use cleaner::MarkdownCleaner;
