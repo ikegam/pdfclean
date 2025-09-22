@@ -3,7 +3,7 @@ use std::fs;
 use std::io::{self, Read};
 use std::sync::Arc;
 use anyhow::Result;
-use pdfclean::{MarkdownCleaner, WhitespaceProcessor, ImageProcessor, TableProcessor};
+use mdclean::{MarkdownCleaner, WhitespaceProcessor, ImageProcessor, TableProcessor};
 
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();

@@ -1,4 +1,4 @@
-# pdfclean
+# mdclean
 
 AI-specialized markdown cleaner for PDF-extracted content. PDFから抽出されたMarkdownの空白やフォーマットの問題をクリーンアップしつつ、画像参照や表構造を保護します。
 
@@ -14,16 +14,16 @@ AI-specialized markdown cleaner for PDF-extracted content. PDFから抽出され
 
 ```bash
 # ファイルをクリーンアップ（ファイル間処理）
-pdfclean input.md output.md
+mdclean input.md output.md
 
 # ファイルから標準出力
-pdfclean input.md
+mdclean input.md
 
 # 標準入出力を使用
-pdfclean < input.md > output.md
+mdclean < input.md > output.md
 
 # パイプ処理
-cat messy.md | pdfclean > clean.md
+cat messy.md | mdclean > clean.md
 ```
 
 ## アーキテクチャ
@@ -47,7 +47,7 @@ pub trait NodeProcessor: Send + Sync {
 ## ライブラリとして使用
 
 ```rust
-use pdfclean::{MarkdownCleaner, WhitespaceProcessor, ImageProcessor, TableProcessor};
+use mdclean::{MarkdownCleaner, WhitespaceProcessor, ImageProcessor, TableProcessor};
 use std::sync::Arc;
 
 let mut cleaner = MarkdownCleaner::new();

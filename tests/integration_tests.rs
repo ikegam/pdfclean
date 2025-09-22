@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use pdfclean::{MarkdownCleaner, WhitespaceProcessor, ImageProcessor, TableProcessor};
+use mdclean::{MarkdownCleaner, WhitespaceProcessor, ImageProcessor, TableProcessor};
 
 /// Helper function to create a cleaner with all processors
 fn create_cleaner() -> MarkdownCleaner {

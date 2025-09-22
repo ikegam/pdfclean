@@ -1,14 +1,14 @@
 [package]
-name = "pdfclean"
+name = "mdclean"
 version = "0.1.0"
 edition = "2021"
 description = "AI-specialized markdown cleaner for PDF-extracted content"
 license = "MIT"
 authors = ["Claude AI <noreply@anthropic.com>"]
-repository = "https://github.com/ikegam/pdfclean"
+repository = "https://github.com/ikegam/mdclean"
 
 [[bin]]
-name = "pdfclean"
+name = "mdclean"
 path = "src/main.rs"
 
 [dependencies]
