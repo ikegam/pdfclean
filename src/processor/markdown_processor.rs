@@ -80,6 +80,12 @@ impl MarkdownProcessor {
                 let items = self.extract_list_items(node);
                 Some(MarkdownUnit::List { items })
             }
+            Node::Image(image) => {
+                Some(MarkdownUnit::Image {
+                    alt: image.alt.clone(),
+                    url: image.url.clone(),
+                })
+            }
             _ => {
                 let content = self.extract_text_content(node);
                 if !content.trim().is_empty() {
@@ -123,6 +129,9 @@ impl MarkdownProcessor {
                     .map(|child| self.extract_text_content(child))
                     .collect::<Vec<_>>()
                     .join("")
+            }
+            Node::Image(image) => {
+                format!("![{}]({})", image.alt, image.url)
             }
             _ => String::new(),
         }
@@ -180,6 +189,9 @@ impl MarkdownProcessor {
                     .map(|line| format!("> {}", line))
                     .collect::<Vec<_>>()
                     .join("\n")
+            }
+            MarkdownUnit::Image { alt, url } => {
+                format!("![{}]({})", alt, url)
             }
             MarkdownUnit::Raw { content } => content,
         }

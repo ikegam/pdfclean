@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::env;
 use std::fs;
 use anyhow::Result;
-use markdown_filter::{MarkdownProcessor, WhitespaceHandler};
+use markdown_filter::{MarkdownProcessor, WhitespaceHandler, ImageHandler};
 
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
@@ -18,6 +18,11 @@ fn main() -> Result<()> {
     let content = fs::read_to_string(input_file)?;
 
     let mut processor = MarkdownProcessor::new();
+
+    // Add ImageHandler first to protect images from whitespace processing
+    let image_handler = ImageHandler::new();
+    processor.add_handler(Arc::new(image_handler));
+
     let whitespace_handler = WhitespaceHandler::new();
     processor.add_handler(Arc::new(whitespace_handler));
 
