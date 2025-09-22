@@ -1,83 +1,121 @@
-# Markdown Filter
+# pdfclean
 
-`markdown-rs`を使ってMarkdownを解析し、正規表現でフィルタをかけるRustプログラムです。
+AI-specialized markdown cleaner for PDF-extracted content. PDFから抽出されたMarkdownの空白やフォーマットの問題をクリーンアップしつつ、画像参照や表構造を保護します。
 
 ## 特徴
 
-- **ユニット単位での処理**: Markdownを見出し、段落、コードブロック、リスト、引用などのユニットに分割して処理
-- **抽象化されたハンドラシステム**: `Handler`トレイトによる柔軟なフィルタリング機能
-- **特化型ハンドラ**: 見出し専用、段落専用などの特化したハンドラを提供
-- **組み合わせ可能**: 複数のハンドラを組み合わせて複雑なフィルタリングが可能
+- **PDFから抽出されたMarkdown専用設計**: AI生成コンテンツでよくある問題に対応
+- **AST直接操作**: `markdown::mdast::Node`を直接操作して高速処理
+- **コンテンツ保護**: 画像参照、表、コードブロックのフォーマットを保持
+- **スマートな空白処理**: 不要な空白を除去しつつ構造化コンテンツは保護
+- **モジュラー設計**: NodeProcessorによる拡張可能なアーキテクチャ
+
+## 使用例
+
+```bash
+# ファイルをクリーンアップ
+pdfclean input.md output.md
+
+# 標準入出力を使用
+cat messy.md | pdfclean > clean.md
+```
 
 ## アーキテクチャ
 
-### ハンドラトレイト
+### NodeProcessor トレイト
 
 ```rust
-pub trait Handler: Send + Sync {
-    fn can_handle(&self, unit: &MarkdownUnit) -> bool;
-    fn handle(&self, unit: MarkdownUnit, context: &HandlerContext) -> Result<Option<MarkdownUnit>>;
+pub trait NodeProcessor: Send + Sync {
+    fn should_process(&self, node: &Node) -> bool;
+    fn process_node(&self, node: Node, context: &ProcessContext) -> Result<Option<Node>>;
     fn name(&self) -> &str;
 }
 ```
 
-### ハンドラの種類
+### プロセッサの種類
 
-1. **RegexHandler**: 汎用的な正規表現ハンドラ
-2. **HeadingHandler**: 見出し専用ハンドラ（RegexHandlerをラップ）
-3. **ParagraphHandler**: 段落専用ハンドラ（RegexHandlerをラップ）
+1. **WhitespaceProcessor**: 空白・改行の正規化（画像と表は除外）
+2. **ImageProcessor**: 画像参照 `![alt](url)` を完全保護
+3. **TableProcessor**: Markdownテーブルと疑似テーブルを保護
 
-## 使用例
+## ライブラリとして使用
 
 ```rust
+use pdfclean::{MarkdownCleaner, WhitespaceProcessor, ImageProcessor, TableProcessor};
 use std::sync::Arc;
-use markdown_filter::{MarkdownProcessor, HeadingHandler, ParagraphHandler, RegexHandler};
 
-let mut processor = MarkdownProcessor::new();
+let mut cleaner = MarkdownCleaner::new();
 
-// 見出しの "Hello" を "Hi" に置換
-let heading_filter = HeadingHandler::new(r"Hello", "Hi".to_string())?;
-processor.add_handler(Arc::new(heading_filter));
+// プロセッサを追加
+cleaner.add_processor(Arc::new(WhitespaceProcessor::new()));
+cleaner.add_processor(Arc::new(ImageProcessor::new()));
+cleaner.add_processor(Arc::new(TableProcessor::new()));
 
-// 段落内の太字テキストにフィルタ情報を追加
-let paragraph_filter = ParagraphHandler::new(
-    r"\*\*(.+?)\*\*",
-    "**$1 (FILTERED)**".to_string()
-)?;
-processor.add_handler(Arc::new(paragraph_filter));
-
-// すべてのユニットで斜体を別の形式に変換
-let general_filter = RegexHandler::new(
-    "italic_filter".to_string(),
-    r"\*(.+?)\*",
-    "_$1_".to_string()
-)?;
-processor.add_handler(Arc::new(general_filter));
-
-let result = processor.process(markdown_text)?;
+let cleaned = cleaner.process(markdown_content)?;
 ```
 
 ## プロジェクト構造
 
 ```
 src/
-├── handlers/           # ハンドラ関連
+├── processors/         # NodeProcessor実装
 │   ├── mod.rs         # モジュール定義
-│   ├── traits.rs      # Handler トレイトと MarkdownUnit 定義
-│   ├── regex_handler.rs    # 汎用正規表現ハンドラ
-│   ├── heading_handler.rs  # 見出し専用ハンドラ
-│   └── paragraph_handler.rs # 段落専用ハンドラ
-├── processor/          # Markdown処理器
-│   ├── mod.rs
-│   └── markdown_processor.rs # メインの処理エンジン
+│   ├── traits.rs      # NodeProcessor トレイトとProcessContext定義
+│   ├── whitespace_processor.rs  # 空白処理プロセッサ
+│   ├── image_processor.rs       # 画像保護プロセッサ
+│   └── table_processor.rs       # 表保護プロセッサ
+├── cleaner.rs          # メインクリーナーエンジン
 ├── lib.rs             # ライブラリエントリポイント
-└── main.rs            # 実行例
+└── main.rs            # CLI実行ファイル
 ```
 
-## 実行
+## テスト
 
 ```bash
-cargo run
+# 統合テスト実行
+cargo test
+
+# 基本的な動作確認
+cargo run -- tests/fixtures/basic_text.md /tmp/output.md
 ```
 
-サンプルMarkdownに対して各種フィルタを適用した結果が表示されます。
+## 特徴的な処理
+
+### 画像参照の保護
+```markdown
+# 処理前
+![  画像   ](  image.jpg  )
+
+# 処理後（保護されて変更なし）
+![  画像   ](  image.jpg  )
+```
+
+### 表構造の保護
+```markdown
+# 処理前・後（保護されて変更なし）
+| 列1    | 列2     |
+|--------|---------|
+| データ | データ  |
+```
+
+### スマートな空白処理
+```markdown
+# 処理前
+段落1
+
+
+段落2　　　です。
+
+# 処理後
+段落1
+
+段落2です。
+```
+
+### コードブロックの保護
+```markdown
+# 処理前・後（内部の空白は保護）
+```
+コード　　　例　　　です
+空白　　　保持
+```
